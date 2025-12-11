@@ -2,7 +2,7 @@ import path
 
 def run():
     sumIds = 0
-    with open(path) as text:
+    with open(path.path) as text:
         indexRanges = text.read().split(",")
         for indexRange in indexRanges:
             firstIndex = indexRange.split("-")[0]
@@ -18,7 +18,7 @@ def run():
 def run2():
     listIds = list()
     sumIds = 0
-    with open(path) as text:
+    with open(path.path) as text:
         indexRanges = text.read().split(",")
         for indexRange in indexRanges:
             firstIndex = indexRange.split("-")[0]
