@@ -1,13 +1,15 @@
-namespace AdventOfCode
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Test
 {
-    public class Program
+    internal class Excercise9
     {
         private static readonly string path = "input.txt";
-
-        public static void Main(string[] args)
-        {
-            SolveTask2();
-        }
 
         private static void SolveTask1()
         {
@@ -24,14 +26,13 @@ namespace AdventOfCode
             Console.WriteLine(maxSize);
         }
 
-        private static void SolveTask2()
+        public static void SolveTask2()
         {
             List<Coordinate> coordinates = RetrieveCoordinates()
                 .OrderBy(c => c.Y)
                 .ToList();
 
             List<Boundary> boundaries = GetBoundaries(coordinates);
-
             // Check if valid rectangle and calculate
             long maxSize = 0;
             for (int i = 0; i < coordinates.Count; i++)
@@ -41,7 +42,11 @@ namespace AdventOfCode
                     Coordinate firstCoordinate = coordinates[i];
                     Coordinate secondCoordinate = coordinates[j];
 
-                    if (!ValidateRectangle(firstCoordinate, secondCoordinate, boundaries)) continue;
+                    if (!ValidateRectangle(firstCoordinate, secondCoordinate, boundaries))
+                    {
+                        continue;
+                    }
+
                     long size = CalculateRectangle(firstCoordinate, secondCoordinate);
                     maxSize = size > maxSize ? size : maxSize;
                 }
@@ -64,7 +69,6 @@ namespace AdventOfCode
             return width * height;
         }
 
-        
 
         /// <summary>
         /// Gets boundaries by moving around the surface while alternating beetween horizontal and vertical edges
@@ -124,7 +128,8 @@ namespace AdventOfCode
 
 
         /// <summary>
-        /// Check if no boundary is beetween opposite rectangle sides
+        /// Check if no boundary is beetween opposite rectangle sides and <br/>
+        /// if all coordinates are polygon corners at at most one is not but contains boundaries
         /// </summary>
         /// <param name="co1">First red tile coordinate</param>
         /// <param name="co2">Opposite corner red tile coordinate</param>
@@ -138,19 +143,40 @@ namespace AdventOfCode
             int lowerY = co1.Y < co2.Y ? co1.Y : co2.Y;
             int lowerX = co1.X < co2.X ? co1.X : co2.X;
 
+            Coordinate co3 = new Coordinate(co1.X, co2.Y);
+            Coordinate co4 = new Coordinate(co2.X, co1.Y);
+
+            // Helper for check of adjacent rectangle side of coordinates
+            bool firstCoordinatesSide = false; // co1 <-> co3
+            bool secondCoordinatesSide = false; // co3 <-> co2
+            bool thirdCoordinatesSide = false; // co2 <-> co4
+            bool fourthCoordinatesSide = false; // co4 <-> co1
+
+            // Helper for polygon corner check 
+            bool firstCoordinate = false;
+            bool secondCoordinate = false;
+            bool thirdCoordinate = false;
+            bool forthCoordinate = false;
+
             foreach (Boundary boundary in boundaries)
             {
+                int boundaryStart = -1;
+                int boundaryEnd = -1;
                 if (boundary.Horizontal) // Different X values 
                 {
                     if (boundary.FirstCoordinate.Y >= higherY || boundary.FirstCoordinate.Y <= lowerY) // Y in rectangle? If not, boundary can not be within rectangle
                     {
                         continue;
                     }
-                    int start = boundary.FirstCoordinate.X > boundary.SecondCoordinate.X ? boundary.SecondCoordinate.X : boundary.FirstCoordinate.X;
-                    int end = boundary.FirstCoordinate.X > boundary.SecondCoordinate.X ? boundary.FirstCoordinate.X : boundary.SecondCoordinate.X;
 
-                    // Is boundary entirely or partially in rectangle (horizontally)?
-                    if (start <= higherX && end >= lowerX || start <= lowerX && end >= lowerX || start <= higherX && end >= higherX) return false;
+                    boundaryStart = boundary.FirstCoordinate.X > boundary.SecondCoordinate.X ? boundary.SecondCoordinate.X : boundary.FirstCoordinate.X;
+                    boundaryEnd = boundary.FirstCoordinate.X > boundary.SecondCoordinate.X ? boundary.FirstCoordinate.X : boundary.SecondCoordinate.X;
+
+                    // Is boundary entirely or partially in rectangle (vertically)?
+                    if (boundaryStart > lowerX && boundaryStart < higherX || boundaryEnd > lowerX && boundaryEnd < higherX || boundaryStart <= lowerX && boundaryEnd >= higherX)
+                    {
+                        return false;
+                    }
                 }
                 else // Different Y values
                 {
@@ -158,18 +184,90 @@ namespace AdventOfCode
                     {
                         continue;
                     }
-                    int start = boundary.FirstCoordinate.Y > boundary.SecondCoordinate.Y ? boundary.SecondCoordinate.Y : boundary.FirstCoordinate.Y;
-                    int end = boundary.FirstCoordinate.Y > boundary.SecondCoordinate.Y ? boundary.FirstCoordinate.Y : boundary.SecondCoordinate.Y;
+
+                    boundaryStart = boundary.FirstCoordinate.Y > boundary.SecondCoordinate.Y ? boundary.SecondCoordinate.Y : boundary.FirstCoordinate.Y;
+                    boundaryEnd = boundary.FirstCoordinate.Y > boundary.SecondCoordinate.Y ? boundary.FirstCoordinate.Y : boundary.SecondCoordinate.Y;
 
                     // Is boundary entirely or partially in rectangle (vertically)?
-                    if (start <= higherY && end >= lowerY || start <= lowerY && end >= lowerY || start <= higherY && end >= higherY) return false;
+                    if (boundaryStart > lowerY && boundaryStart < higherY || boundaryEnd > lowerY && boundaryEnd < higherY || boundaryStart <= lowerY && boundaryEnd >= higherY)
+                    {
+                        return false;
+                    }
+                }
+
+                // Check if coordinates are polygon corners or the rectangle sides contain partially a boundary
+                firstCoordinate = firstCoordinate || IsCooridnateOnBoundary(co1, co3, boundaryStart, boundaryEnd, boundary);
+                secondCoordinate = secondCoordinate || IsCooridnateOnBoundary(co3, co2, boundaryStart, boundaryEnd, boundary);
+                thirdCoordinate = thirdCoordinate || IsCooridnateOnBoundary(co2, co4, boundaryStart, boundaryEnd, boundary);
+                forthCoordinate = forthCoordinate || IsCooridnateOnBoundary(co4, co1, boundaryStart, boundaryEnd, boundary);
+
+                firstCoordinatesSide = firstCoordinatesSide || SideContainsBoundary(co1, co3, boundaryStart, boundaryEnd, boundary);
+                secondCoordinatesSide = secondCoordinatesSide || SideContainsBoundary(co3, co2, boundaryStart, boundaryEnd, boundary);
+                thirdCoordinatesSide = thirdCoordinatesSide || SideContainsBoundary(co2, co4, boundaryStart, boundaryEnd, boundary);
+                fourthCoordinatesSide = fourthCoordinatesSide || SideContainsBoundary(co4, co1, boundaryStart, boundaryEnd, boundary);
+            }
+
+            List<bool> coordinateResult = new List<bool>() { firstCoordinate, secondCoordinate, thirdCoordinate, forthCoordinate }; // Easyer to code the following checks if in list
+
+            if (coordinateResult.Count == 4) return true; // All coordinates are polygon corners and no boundaries within rectangle
+            
+            if (coordinateResult.Count == 3) // 3 coordinates are corners. Check if last one has both adjacent rectangle sides containing partially a boundary
+            {
+                int coordinateNumber = coordinateResult
+                    .Select((value, index) => new { value, index })
+                    .FirstOrDefault(x => !x.value).index + 1;
+                switch (coordinateNumber)
+                {
+                    case 1: return firstCoordinatesSide && fourthCoordinatesSide;
+                    case 2: return firstCoordinatesSide && secondCoordinatesSide;
+                    case 3: return secondCoordinatesSide && thirdCoordinatesSide;
+                    default: return thirdCoordinatesSide && forthCoordinate;
                 }
             }
-            return true;
+            return false;
+        }
+
+
+        private static bool SideContainsBoundary(Coordinate co1, Coordinate co2, int boundaryStart, int boundaryEnd, Boundary boundary)
+        {
+            if (boundary.Horizontal) // Different X values
+            {
+                if (co1.Y == boundary.FirstCoordinate.Y && co2.Y == boundary.FirstCoordinate.Y)
+                {
+                    return boundaryStart > co1.X && boundaryStart < co2.X || boundaryStart > co2.X && boundaryStart < co1.X ||
+                        boundaryEnd > co1.X && boundaryEnd < co2.X || boundaryEnd > co2.X && boundaryEnd < co1.X;
+                }
+            }
+            else // Different Y values
+            {
+                if (co1.X == boundary.FirstCoordinate.X && co2.X == boundary.FirstCoordinate.X)
+                {
+                    return boundaryStart > co1.Y && boundaryStart < co2.Y || boundaryStart > co2.Y && boundaryStart < co1.Y ||
+                        boundaryEnd > co1.Y && boundaryEnd < co2.Y || boundaryEnd > co2.Y && boundaryEnd < co1.Y;
+                }
+            }
+            return false;
+        }
+
+        private static bool IsCooridnateOnBoundary(Coordinate co1, Coordinate co2, int start, int end, Boundary boundary)
+        {
+            if (boundary.Horizontal) // Different X values
+            {
+                if (co1.Y == boundary.FirstCoordinate.Y && co2.Y == boundary.FirstCoordinate.Y && co1.X >= start && co1.X <= end && co2.X >= start && co2.X <= end)
+                {
+                    return true;
+                }
+            }
+            else // Different Y values
+            {
+                if (co1.X == boundary.FirstCoordinate.X && co2.X == boundary.FirstCoordinate.X && co1.Y >= start && co1.Y <= end && co2.Y >= start && co2.Y <= end)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
-
-
 
     public class Coordinate
     {
