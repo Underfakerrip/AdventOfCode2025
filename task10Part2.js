@@ -4,7 +4,7 @@
  * Looking athe the input, I realized the problem would be an overdetermined system of equations which would be difficult to solve for least amount of button clicks.
  * There is an approach working with inequalities and maximize using a target function.
  * The apporach is called Simplex Algorithm and can be adapted for this problem:
- * Think about an equation like a + b = 1 as two inequalities: a + b <= 1 AND a + b >= 1
+ * Think about an equation like a + b = 1 as two inequalities: a + b <= 1 AND a + b >= 1 (and the latter on is the same as: -a - b <= -1)
  * Each button schema represent a structure variable of the problem with its values reprent the values for the latter constraint. 
  * Example (a, b, c and d only represent the index of the indicators (for readability) and are not requirement in the problem): 
  * * (1,2,4) results in: x1 b + x1 c + x1 d >= 0 AND
