@@ -3,8 +3,8 @@
  * Think of needed indicators and buttom schemas as equations to be solved.
  * Looking athe the input, I realized the problem would be an overdetermined system of equations which would be difficult to solve for least amount of button clicks.
  * There is an approach working with inequalities and maximize using a target function.
- * The apporach is called Simplex Algorithm and can be adapted for this problem:
- * Think about an equation like a + b = 1 as two inequalities: a + b <= 1 AND a + b >= 1 (and the latter on is the same as: -a - b <= -1)
+ * The apporach is called Simplex algorithm and can be adapted for this problem:
+ * Think about an equation like a + b = 1 as two inequalities: a + b <= 1 AND a + b >= 1
  * Each button schema represent a structure variable of the problem with its values reprent the values for the latter constraint. 
  * Example (a, b, c and d only represent the index of the indicators (for readability) and are not requirement in the problem): 
  * * (1,2,4) results in: x1 b + x1 c + x1 d >= 0 AND
@@ -23,6 +23,10 @@
  * The idea is to add a constraint to prevent the algorithm of using a non integer solution by cutting the found "optimal" out.
  * This produces an invalid solution (thus resulting in the usage of Dual Simplex or M Method) and a new valid and optimal solution is to be found.
  * This process is repeated until the otimal solution only contains integer values.
+ * 
+ * Complexity:
+ * Simplex algorithms have worst-case complexity: O(2^n) (see for example: https://en.wikipedia.org/wiki/Klee%E2%80%93Minty_cube)
+ * However in most cases, the Simplex algorithms perform better than alternatives like the Interior-point method O(log(n)) (see: https://en.wikipedia.org/wiki/Interior-point_method)
  * 
  * 
  * As I already implemented several versions of Simplex algorithms (Primal, Dual, M Method as well as Duality), my motivation was low.
